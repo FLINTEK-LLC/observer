@@ -1,3 +1,7 @@
+// Copyright (c) 2026 FLINTEK LLC
+// Licensed under the Apache License, Version 2.0.
+// See LICENSE in the project root for license information.
+
 package enricher
 
 import (
@@ -193,20 +197,16 @@ func (v *VirusTotalEnricher) submitAndPollURL(ctx context.Context, rawURL string
 }
 
 func (v *VirusTotalEnricher) parseAttributes(resp *http.Response, rawURL string, isFile bool) (*model.SourceResult, error) {
-	switch {
-	case resp.StatusCode == http.StatusTooManyRequests:
-		return rateLimitedResult(v.Name()), nil
-	case resp.StatusCode == http.StatusNotFound:
+	if resp.StatusCode == http.StatusNotFound {
 		return &model.SourceResult{
 			Name:   v.Name(),
 			Status: "ok",
 			Data:   map[string]any{"found": false},
 			RawURL: rawURL,
 		}, nil
-	case resp.StatusCode >= 500:
-		return errResult(v.Name(), fmt.Sprintf("server error: HTTP %d", resp.StatusCode)), nil
-	case resp.StatusCode >= 400:
-		return errResult(v.Name(), fmt.Sprintf("client error: HTTP %d", resp.StatusCode)), nil
+	}
+	if sr := classifyStatus(v.Name(), resp.StatusCode); sr != nil {
+		return sr, nil
 	}
 
 	var envelope struct {

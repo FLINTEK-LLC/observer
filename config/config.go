@@ -1,3 +1,7 @@
+// Copyright (c) 2026 FLINTEK LLC
+// Licensed under the Apache License, Version 2.0.
+// See LICENSE in the project root for license information.
+
 package config
 
 import (
@@ -15,7 +19,6 @@ type Config struct {
 	AbuseIPDBAPIKey  string
 	OTXAPIKey        string
 	IPInfoToken      string
-	GreyNoiseAPIKey  string
 
 	// Server settings
 	ObserverAPIKey string
@@ -46,7 +49,6 @@ func Load(envFile string) (*Config, error) {
 		AbuseIPDBAPIKey:  os.Getenv("ABUSEIPDB_API_KEY"),
 		OTXAPIKey:        os.Getenv("OTX_API_KEY"),
 		IPInfoToken:      os.Getenv("IPINFO_TOKEN"),
-		GreyNoiseAPIKey:  os.Getenv("GREYNOISE_API_KEY"),
 
 		ObserverAPIKey: os.Getenv("OBSERVER_API_KEY"),
 		Port:           envOr("OBSERVER_PORT", "8080"),
@@ -85,6 +87,5 @@ func (c *Config) ActiveSources() map[string]bool {
 		"whois":      true, // no key required
 		"otx":        c.OTXAPIKey != "",
 		"ipinfo":     true, // basic works without token
-		"greynoise":  c.GreyNoiseAPIKey != "",
 	}
 }

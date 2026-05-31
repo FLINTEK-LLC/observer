@@ -1,3 +1,7 @@
+// Copyright (c) 2026 FLINTEK LLC
+// Licensed under the Apache License, Version 2.0.
+// See LICENSE in the project root for license information.
+
 package enricher
 
 import (
@@ -48,28 +52,27 @@ func (s *ShodanEnricher) Enrich(ctx context.Context, observable string, oType de
 	url := fmt.Sprintf("%s/shodan/host/%s?key=%s", s.baseURL, ip, s.apiKey)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
-		return errResult(s.Name(), fmt.Sprintf("request error: %v", err)), nil
+		return errResult(s.Name(), fmt.Sprintf("request error: %s", sanitizeErr(err, s.apiKey))), nil
 	}
 
 	resp, err := s.client.Do(req)
 	if err != nil {
-		return errResult(s.Name(), fmt.Sprintf("connection failed: %v", err)), nil
+		return errResult(s.Name(), fmt.Sprintf("connection failed: %s", sanitizeErr(err, s.apiKey))), nil
 	}
 	defer resp.Body.Close()
 
-	switch {
-	case resp.StatusCode == http.StatusTooManyRequests:
-		return rateLimitedResult(s.Name()), nil
-	case resp.StatusCode == http.StatusNotFound:
+	if resp.StatusCode == http.StatusNotFound {
 		return &model.SourceResult{
 			Name:   s.Name(),
 			Status: "ok",
 			Data:   map[string]any{"found": false},
 			RawURL: fmt.Sprintf("https://www.shodan.io/host/%s", ip),
 		}, nil
-	case resp.StatusCode >= 500:
-		return errResult(s.Name(), fmt.Sprintf("server error: HTTP %d", resp.StatusCode)), nil
-	case resp.StatusCode != http.StatusOK:
+	}
+	if sr := classifyStatus(s.Name(), resp.StatusCode); sr != nil {
+		return sr, nil
+	}
+	if resp.StatusCode != http.StatusOK {
 		return errResult(s.Name(), fmt.Sprintf("unexpected status: HTTP %d", resp.StatusCode)), nil
 	}
 

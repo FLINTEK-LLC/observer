@@ -1,6 +1,11 @@
+// Copyright (c) 2026 FLINTEK LLC
+// Licensed under the Apache License, Version 2.0.
+// See LICENSE in the project root for license information.
+
 package web
 
 import (
+	"crypto/subtle"
 	"encoding/json"
 	"net/http"
 )
@@ -26,7 +31,8 @@ func APIKeyMiddleware(apiKey string, next http.Handler) http.Handler {
 			writeError(w, http.StatusUnauthorized, "missing X-API-Key header", "MISSING_API_KEY")
 			return
 		}
-		if provided != apiKey {
+		// Constant-time comparison avoids leaking the key via response timing.
+		if subtle.ConstantTimeCompare([]byte(provided), []byte(apiKey)) != 1 {
 			writeError(w, http.StatusUnauthorized, "invalid API key", "INVALID_API_KEY")
 			return
 		}

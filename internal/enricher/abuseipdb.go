@@ -1,3 +1,7 @@
+// Copyright (c) 2026 FLINTEK LLC
+// Licensed under the Apache License, Version 2.0.
+// See LICENSE in the project root for license information.
+
 package enricher
 
 import (
@@ -56,13 +60,8 @@ func (a *AbuseIPDBEnricher) Enrich(ctx context.Context, observable string, oType
 	}
 	defer resp.Body.Close()
 
-	switch {
-	case resp.StatusCode == http.StatusTooManyRequests:
-		return rateLimitedResult(a.Name()), nil
-	case resp.StatusCode >= 500:
-		return errResult(a.Name(), fmt.Sprintf("server error: HTTP %d", resp.StatusCode)), nil
-	case resp.StatusCode >= 400:
-		return errResult(a.Name(), fmt.Sprintf("client error: HTTP %d", resp.StatusCode)), nil
+	if sr := classifyStatus(a.Name(), resp.StatusCode); sr != nil {
+		return sr, nil
 	}
 
 	var envelope struct {

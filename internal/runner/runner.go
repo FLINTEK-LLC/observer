@@ -1,7 +1,12 @@
+// Copyright (c) 2026 FLINTEK LLC
+// Licensed under the Apache License, Version 2.0.
+// See LICENSE in the project root for license information.
+
 package runner
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"strings"
 	"sync"
@@ -28,7 +33,7 @@ func RunWithOptions(
 ) (*model.EnrichmentResult, error) {
 	oType, err := detect.Detect(observable)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("detect observable: %w", err)
 	}
 
 	enrichers := customEnrichers
@@ -115,7 +120,8 @@ func typeSupported(supported []detect.ObservableType, t detect.ObservableType) b
 }
 
 func buildEnrichers(cfg *config.Config) []enricher.Enricher {
-	var list []enricher.Enricher
+	// At most six sources; pre-allocate to avoid intermediate growth.
+	list := make([]enricher.Enricher, 0, 6)
 
 	if cfg.ShodanAPIKey != "" {
 		list = append(list, enricher.NewShodan(cfg.ShodanAPIKey))
@@ -133,9 +139,6 @@ func buildEnrichers(cfg *config.Config) []enricher.Enricher {
 	}
 	// ipinfo: basic geo works without a token.
 	list = append(list, enricher.NewIPInfo(cfg.IPInfoToken))
-	if cfg.GreyNoiseAPIKey != "" {
-		list = append(list, enricher.NewGreyNoise(cfg.GreyNoiseAPIKey))
-	}
 
 	return list
 }

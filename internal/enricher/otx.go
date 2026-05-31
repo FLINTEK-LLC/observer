@@ -1,3 +1,7 @@
+// Copyright (c) 2026 FLINTEK LLC
+// Licensed under the Apache License, Version 2.0.
+// See LICENSE in the project root for license information.
+
 package enricher
 
 import (
@@ -65,19 +69,15 @@ func (o *OTXEnricher) Enrich(ctx context.Context, observable string, oType detec
 	}
 	defer resp.Body.Close()
 
-	switch {
-	case resp.StatusCode == http.StatusTooManyRequests:
-		return rateLimitedResult(o.Name()), nil
-	case resp.StatusCode == http.StatusNotFound:
+	if resp.StatusCode == http.StatusNotFound {
 		return &model.SourceResult{
 			Name:   o.Name(),
 			Status: "ok",
 			Data:   map[string]any{"pulse_count": 0},
 		}, nil
-	case resp.StatusCode >= 500:
-		return errResult(o.Name(), fmt.Sprintf("server error: HTTP %d", resp.StatusCode)), nil
-	case resp.StatusCode >= 400:
-		return errResult(o.Name(), fmt.Sprintf("client error: HTTP %d", resp.StatusCode)), nil
+	}
+	if sr := classifyStatus(o.Name(), resp.StatusCode); sr != nil {
+		return sr, nil
 	}
 
 	var raw struct {

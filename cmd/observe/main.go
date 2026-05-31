@@ -1,3 +1,7 @@
+// Copyright (c) 2026 FLINTEK LLC
+// Licensed under the Apache License, Version 2.0.
+// See LICENSE in the project root for license information.
+
 package main
 
 import (
@@ -146,7 +150,9 @@ func main() {
 			observable := args[0]
 			var srcList []string
 			if sources != "" {
-				for _, s := range strings.Split(sources, ",") {
+				parts := strings.Split(sources, ",")
+				srcList = make([]string, 0, len(parts))
+				for _, s := range parts {
 					srcList = append(srcList, strings.TrimSpace(s))
 				}
 			}
@@ -226,7 +232,7 @@ Navigation: ↑/↓ or j/k  |  Enter: edit  |  d: clear  |  Ctrl+S: save & exit 
 			fmt.Println("\nSource Configuration")
 			fmt.Println(strings.Repeat("─", 40))
 
-			for _, name := range []string{"shodan", "virustotal", "abuseipdb", "whois", "otx", "ipinfo", "greynoise"} {
+			for _, name := range []string{"shodan", "virustotal", "abuseipdb", "whois", "otx", "ipinfo"} {
 				isActive := active[name]
 				if isActive {
 					anyActive = true
@@ -364,7 +370,12 @@ func runUpdate() error {
 
 	// Different version — attempt go install.
 	fmt.Printf("Updating to %s...\n", release.TagName)
-	cmd := exec.CommandContext(ctx, "go", "install",
+	goBin, err := exec.LookPath("go")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "\n'go' not found in PATH — download the binary directly:\n  %s\n", release.HTMLURL)
+		return nil
+	}
+	cmd := exec.CommandContext(ctx, goBin, "install",
 		"github.com/ctrlaltdean/observer/cmd/observe@latest")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -380,7 +391,9 @@ func runUpdate() error {
 func runBulk(observables []string, cfg *config.Config, format string, sourcesStr string) error {
 	var srcList []string
 	if sourcesStr != "" {
-		for _, s := range strings.Split(sourcesStr, ",") {
+		parts := strings.Split(sourcesStr, ",")
+		srcList = make([]string, 0, len(parts))
+		for _, s := range parts {
 			srcList = append(srcList, strings.TrimSpace(s))
 		}
 	}
@@ -418,7 +431,9 @@ func runBulk(observables []string, cfg *config.Config, format string, sourcesStr
 
 			if !isJSON {
 				// Print immediately for non-JSON formats.
-				_ = render.Render(result, render.Format(format), os.Stdout)
+				if rerr := render.Render(result, render.Format(format), os.Stdout); rerr != nil {
+					fmt.Fprintf(os.Stderr, "  render error for %s: %v\n", result.Observable, rerr)
+				}
 				fmt.Println()
 			}
 		}()
@@ -428,7 +443,9 @@ func runBulk(observables []string, cfg *config.Config, format string, sourcesStr
 	if isJSON {
 		enc := json.NewEncoder(os.Stdout)
 		enc.SetIndent("", "  ")
-		_ = enc.Encode(results)
+		if err := enc.Encode(results); err != nil {
+			fmt.Fprintf(os.Stderr, "error encoding JSON results: %v\n", err)
+		}
 	}
 
 	fmt.Printf("\nSummary: %d processed, %d errors\n", len(results), len(errs))

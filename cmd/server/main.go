@@ -1,3 +1,7 @@
+// Copyright (c) 2026 FLINTEK LLC
+// Licensed under the Apache License, Version 2.0.
+// See LICENSE in the project root for license information.
+
 package main
 
 import (
@@ -5,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/ctrlaltdean/observer/config"
 	"github.com/ctrlaltdean/observer/web"
@@ -54,15 +59,25 @@ func main() {
 
 	addr := fmt.Sprintf(":%s", cfg.Port)
 	log.Printf("observer-server %s listening on http://localhost%s", Version, addr)
-	log.Printf("sources: shodan=%v virustotal=%v abuseipdb=%v whois=always otx=%v ipinfo=always greynoise=%v",
+	log.Printf("sources: shodan=%v virustotal=%v abuseipdb=%v whois=always otx=%v ipinfo=always",
 		cfg.ShodanAPIKey != "",
 		cfg.VirusTotalAPIKey != "",
 		cfg.AbuseIPDBAPIKey != "",
 		cfg.OTXAPIKey != "",
-		cfg.GreyNoiseAPIKey != "",
 	)
 
-	if err := http.ListenAndServe(addr, mux); err != nil {
+	// Explicit timeouts guard against slow-client (Slowloris) connection
+	// exhaustion. WriteTimeout exceeds the bulk handler's 60s context budget.
+	srv := &http.Server{
+		Addr:              addr,
+		Handler:           mux,
+		ReadHeaderTimeout: 10 * time.Second,
+		ReadTimeout:       30 * time.Second,
+		WriteTimeout:      120 * time.Second,
+		IdleTimeout:       120 * time.Second,
+	}
+
+	if err := srv.ListenAndServe(); err != nil {
 		log.Fatalf("server error: %v", err)
 	}
 }

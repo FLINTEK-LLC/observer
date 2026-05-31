@@ -728,26 +728,15 @@
 
     // Classification section
     const ipinfo    = sources['ipinfo'];
-    const greynoise = sources['greynoise'];
     let classHtml = '';
-    if ((ipinfo?.status === 'ok') || (greynoise?.status === 'ok')) {
+    if (ipinfo?.status === 'ok') {
       const badges = [];
-      if (ipinfo?.status === 'ok') {
+      {
         const d = ipinfo.data || {};
         badges.push(classBadge('VPN',      d.vpn,     d.service));
         badges.push(classBadge('TOR',      d.tor,     ''));
         badges.push(classBadge('Proxy',    d.proxy,   ''));
         badges.push(classBadge('Hosting',  d.hosting, d.org));
-      }
-      if (greynoise?.status === 'ok') {
-        const d = greynoise.data || {};
-        const noiseLabel = d.noise
-          ? `YES — ${d.classification || 'scanning'}`
-          : `No (${d.classification || 'unknown'})`;
-        const noiseCls   = d.noise && d.classification === 'malicious' ? 'true-val' : (d.noise ? '' : 'benign-val');
-        badges.push(`<div class="class-badge ${noiseCls}"><span class="label">GN Noise</span><span class="value">${esc(noiseLabel)}</span></div>`);
-        const riotLabel  = d.riot ? `YES — ${esc(d.name || 'RIOT')}` : 'No';
-        badges.push(`<div class="class-badge ${d.riot ? 'benign-val' : ''}"><span class="label">GN RIOT</span><span class="value">${riotLabel}</span></div>`);
       }
       classHtml = `
         <div class="classification-card">
@@ -757,7 +746,7 @@
     }
 
     // Source cards
-    const sourceOrder = ['shodan','virustotal','abuseipdb','whois','otx','ipinfo','greynoise'];
+    const sourceOrder = ['shodan','virustotal','abuseipdb','whois','otx','ipinfo'];
     const orderedKeys = [
       ...sourceOrder.filter(k => sources[k]),
       ...Object.keys(sources).filter(k => !sourceOrder.includes(k)),

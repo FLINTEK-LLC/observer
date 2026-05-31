@@ -1,3 +1,7 @@
+// Copyright (c) 2026 FLINTEK LLC
+// Licensed under the Apache License, Version 2.0.
+// See LICENSE in the project root for license information.
+
 // Package keysmgr provides an interactive bubbletea TUI for managing API keys
 // stored in a .env file on disk.
 package keysmgr
@@ -28,7 +32,6 @@ var AllKeys = []KeyDef{
 	{"ABUSEIPDB_API_KEY", "AbuseIPDB", "https://www.abuseipdb.com/register"},
 	{"OTX_API_KEY", "AlienVault OTX", "https://otx.alienvault.com/"},
 	{"IPINFO_TOKEN", "ipinfo.io token", "https://ipinfo.io/signup"},
-	{"GREYNOISE_API_KEY", "GreyNoise", "https://www.greynoise.io/plan/community"},
 	{"OBSERVER_API_KEY", "Observer server key", "(optional — protects the web server API)"},
 }
 
@@ -155,14 +158,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 // ─── Styles ──────────────────────────────────────────────────────────────────
 
 var (
-	stylePurple  = lipgloss.NewStyle().Foreground(lipgloss.Color("#A78BFA")).Bold(true)
-	styleBlue    = lipgloss.NewStyle().Foreground(lipgloss.Color("#60A5FA"))
-	styleGreen   = lipgloss.NewStyle().Foreground(lipgloss.Color("#4ADE80"))
-	styleMuted   = lipgloss.NewStyle().Foreground(lipgloss.Color("#6B7280"))
-	styleDim     = lipgloss.NewStyle().Foreground(lipgloss.Color("#94A3B8"))
-	styleYellow  = lipgloss.NewStyle().Foreground(lipgloss.Color("#FBBF24"))
-	styleRed     = lipgloss.NewStyle().Foreground(lipgloss.Color("#F87171"))
-	styleBold    = lipgloss.NewStyle().Bold(true)
+	stylePurple   = lipgloss.NewStyle().Foreground(lipgloss.Color("#A78BFA")).Bold(true)
+	styleBlue     = lipgloss.NewStyle().Foreground(lipgloss.Color("#60A5FA"))
+	styleGreen    = lipgloss.NewStyle().Foreground(lipgloss.Color("#4ADE80"))
+	styleMuted    = lipgloss.NewStyle().Foreground(lipgloss.Color("#6B7280"))
+	styleDim      = lipgloss.NewStyle().Foreground(lipgloss.Color("#94A3B8"))
+	styleYellow   = lipgloss.NewStyle().Foreground(lipgloss.Color("#FBBF24"))
+	styleRed      = lipgloss.NewStyle().Foreground(lipgloss.Color("#F87171"))
+	styleBold     = lipgloss.NewStyle().Bold(true)
 	styleSelected = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#1E1B4B")).
 			Background(lipgloss.Color("#A78BFA")).
@@ -179,7 +182,7 @@ func (m Model) View() string {
 
 	title := stylePurple.Render("  Observer — API Key Manager  ")
 	sb.WriteString("\n" + title + "\n")
-	sb.WriteString(styleMuted.Render("  Configure enrichment source keys · saved to " + m.envPath) + "\n\n")
+	sb.WriteString(styleMuted.Render("  Configure enrichment source keys · saved to "+m.envPath) + "\n\n")
 
 	switch m.state {
 
@@ -213,7 +216,7 @@ func (m Model) View() string {
 
 		sb.WriteString("\n")
 		if m.saveErr != "" {
-			sb.WriteString(styleRed.Render("  ⚠ " + m.saveErr) + "\n")
+			sb.WriteString(styleRed.Render("  ⚠ "+m.saveErr) + "\n")
 		} else {
 			sb.WriteString(styleMuted.Render("  Unsaved changes. Press Ctrl+S to save.") + "\n")
 		}
@@ -243,13 +246,6 @@ func maskKey(val string) string {
 		return strings.Repeat("*", len(val))
 	}
 	return val[:4] + strings.Repeat("*", min(len(val)-4, 20)) + "  ✓"
-}
-
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
 }
 
 // ─── .env file I/O ───────────────────────────────────────────────────────────

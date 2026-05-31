@@ -2,7 +2,7 @@
 
 **Observable enrichment tool for defenders, analysts, and incident responders.**
 
-Observer accepts a network observable — an IP address, domain, URL, or file hash — fans it out to seven threat intelligence sources simultaneously, and returns normalized, structured results. It ships as both a CLI binary and a self-hosted web server with a browser UI.
+Observer accepts a network observable — an IP address, domain, URL, or file hash — fans it out to six threat intelligence sources simultaneously, and returns normalized, structured results. It ships as both a CLI binary and a self-hosted web server with a browser UI.
 
 ---
 
@@ -97,7 +97,6 @@ All configuration is via environment variables or a `.env` file in the working d
 | `ABUSEIPDB_API_KEY` | AbuseIPDB API key | — |
 | `OTX_API_KEY` | AlienVault OTX API key | — |
 | `IPINFO_TOKEN` | ipinfo.io token (optional — enables privacy data) | — |
-| `GREYNOISE_API_KEY` | GreyNoise community API key | — |
 | `OBSERVER_API_KEY` | Web server API key (leave empty to disable auth) | — |
 | `OBSERVER_PORT` | Web server listen port | `8080` |
 | `OBSERVER_LOG_LEVEL` | Log verbosity: debug / info / warn / error | `info` |
@@ -270,7 +269,6 @@ SourceResult {
 | WHOIS | ✅ | ✅ | ✅ | ✅² | — | — | — | No key |
 | AlienVault OTX | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | ipinfo.io | ✅ | ✅ | — | — | — | — | — | Optional |
-| GreyNoise | ✅ | — | — | — | — | — | — | ✅ |
 
 ¹ Shodan resolves the domain to an IP first.  
 ² WHOIS extracts the domain from the URL, then queries WHOIS for that domain.
@@ -318,4 +316,21 @@ SourceResult {
 | AbuseIPDB | https://www.abuseipdb.com/register |
 | AlienVault OTX | https://otx.alienvault.com/ |
 | ipinfo.io | https://ipinfo.io/signup |
-| GreyNoise | https://www.greynoise.io/plan/community |
+
+---
+
+## License
+
+```
+SPDX-License-Identifier: Apache-2.0
+```
+
+Copyright (c) 2026 FLINTEK LLC.
+
+Observer is licensed under the **Apache License, Version 2.0**. You may obtain a
+copy of the License at <http://www.apache.org/licenses/LICENSE-2.0>. See the
+[`LICENSE`](LICENSE) file in the project root for the full text.
+
+Unless required by applicable law or agreed to in writing, software distributed
+under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+CONDITIONS OF ANY KIND, either express or implied.

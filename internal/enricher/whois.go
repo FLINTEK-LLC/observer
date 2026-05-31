@@ -1,3 +1,7 @@
+// Copyright (c) 2026 FLINTEK LLC
+// Licensed under the Apache License, Version 2.0.
+// See LICENSE in the project root for license information.
+
 package enricher
 
 import (
@@ -7,6 +11,7 @@ import (
 	"net"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/likexian/whois"
 	whoisparser "github.com/likexian/whois-parser"
@@ -44,13 +49,13 @@ func (w *WHOISEnricher) Enrich(ctx context.Context, observable string, oType det
 	case detect.TypeIPv4, detect.TypeIPv6:
 		return w.enrichIP(ctx, observable)
 	case detect.TypeDomain:
-		return w.enrichDomain(observable)
+		return w.enrichDomain(ctx, observable)
 	case detect.TypeURL:
 		domain := extractDomainFromURL(observable)
 		if domain == "" {
 			return errResult(w.Name(), "could not extract domain from URL"), nil
 		}
-		return w.enrichDomain(domain)
+		return w.enrichDomain(ctx, domain)
 	default:
 		return unsupportedResult(w.Name()), ErrUnsupportedType
 	}
@@ -257,10 +262,35 @@ func partialOrErr(name string, data map[string]any, msg string) (*model.SourceRe
 
 // ─── Domain enrichment via whoisparser ───────────────────────────────────────
 
-func (w *WHOISEnricher) enrichDomain(domain string) (*model.SourceResult, error) {
-	raw, err := whois.Whois(domain)
-	if err != nil {
-		return errResult(w.Name(), fmt.Sprintf("WHOIS query failed: %v", err)), nil
+func (w *WHOISEnricher) enrichDomain(ctx context.Context, domain string) (*model.SourceResult, error) {
+	// whois.Whois performs a blocking port-43 lookup with no context support, so
+	// run it in a goroutine and honor the caller's deadline via select. A timeout
+	// is also pushed into the client so the goroutine cannot outlive the request.
+	type whoisResult struct {
+		raw string
+		err error
+	}
+	ch := make(chan whoisResult, 1)
+	go func() {
+		client := whois.NewClient()
+		if dl, ok := ctx.Deadline(); ok {
+			if d := time.Until(dl); d > 0 {
+				client.SetTimeout(d)
+			}
+		}
+		raw, err := client.Whois(domain)
+		ch <- whoisResult{raw: raw, err: err}
+	}()
+
+	var raw string
+	select {
+	case <-ctx.Done():
+		return errResult(w.Name(), "WHOIS query cancelled: "+ctx.Err().Error()), nil
+	case res := <-ch:
+		if res.err != nil {
+			return errResult(w.Name(), fmt.Sprintf("WHOIS query failed: %v", res.err)), nil
+		}
+		raw = res.raw
 	}
 
 	parsed, err := whoisparser.Parse(raw)

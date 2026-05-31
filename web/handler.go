@@ -1,9 +1,14 @@
+// Copyright (c) 2026 FLINTEK LLC
+// Licensed under the Apache License, Version 2.0.
+// See LICENSE in the project root for license information.
+
 package web
 
 import (
 	"context"
 	"embed"
 	"encoding/json"
+	"fmt"
 	"io/fs"
 	"net/http"
 	"strings"
@@ -19,6 +24,14 @@ var staticFS embed.FS
 
 // Version is set by the server binary at startup.
 var Version = "dev"
+
+const (
+	// maxBulkObservables caps how many observables a single bulk request may
+	// contain, bounding memory and the number of queued goroutines.
+	maxBulkObservables = 1000
+	// maxBulkBodyBytes caps the bulk request body size.
+	maxBulkBodyBytes = 1 << 20 // 1 MiB
+)
 
 // NewMux builds the fully-configured HTTP mux.
 func NewMux(cfg *config.Config) http.Handler {
@@ -94,15 +107,22 @@ func handleEnrich(w http.ResponseWriter, r *http.Request, cfg *config.Config) {
 // ─── /api/enrich/bulk ────────────────────────────────────────────────────────
 
 func handleBulk(w http.ResponseWriter, r *http.Request, cfg *config.Config) {
+	r.Body = http.MaxBytesReader(w, r.Body, maxBulkBodyBytes)
+
 	var body struct {
 		Observables []string `json:"observables"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		writeError(w, http.StatusBadRequest, "invalid JSON body", "INVALID_BODY")
+		writeError(w, http.StatusBadRequest, "invalid or oversized JSON body", "INVALID_BODY")
 		return
 	}
 	if len(body.Observables) == 0 {
 		writeError(w, http.StatusBadRequest, "observables array must not be empty", "EMPTY_OBSERVABLES")
+		return
+	}
+	if len(body.Observables) > maxBulkObservables {
+		writeError(w, http.StatusRequestEntityTooLarge,
+			fmt.Sprintf("too many observables (max %d)", maxBulkObservables), "TOO_MANY_OBSERVABLES")
 		return
 	}
 
@@ -174,7 +194,6 @@ func handleSources(w http.ResponseWriter, _ *http.Request, cfg *config.Config) {
 		{"whois", active["whois"], "WHOIS registration data for domains and IPs"},
 		{"otx", active["otx"], "AlienVault OTX threat pulse lookup"},
 		{"ipinfo", active["ipinfo"], "IP geolocation and VPN/TOR/proxy classification"},
-		{"greynoise", active["greynoise"], "Internet noise and benign-service (RIOT) classification"},
 	}
 
 	writeJSON(w, http.StatusOK, map[string]any{"sources": sources})

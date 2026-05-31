@@ -1,3 +1,7 @@
+// Copyright (c) 2026 FLINTEK LLC
+// Licensed under the Apache License, Version 2.0.
+// See LICENSE in the project root for license information.
+
 package render
 
 import (
@@ -135,7 +139,6 @@ func classificationSection(result *model.EnrichmentResult) string {
 	sb.WriteString("| Category | Value |\n|---|---|\n")
 
 	ipinfo := result.Sources["ipinfo"]
-	greynoise := result.Sources["greynoise"]
 
 	wrote := false
 
@@ -150,16 +153,6 @@ func classificationSection(result *model.EnrichmentResult) string {
 			fmt.Fprintf(&sb, "| %s | %s |\n", r[0], r[1])
 			wrote = true
 		}
-	}
-	if greynoise != nil && greynoise.Status == "ok" {
-		noise := boolVal(greynoise.Data, "noise")
-		class := getString(greynoise.Data, "classification")
-		if class != "" {
-			noise = fmt.Sprintf("%s — %s", noise, class)
-		}
-		fmt.Fprintf(&sb, "| GN Noise | %s |\n", noise)
-		fmt.Fprintf(&sb, "| GN RIOT | %s |\n", boolVal(greynoise.Data, "riot"))
-		wrote = true
 	}
 
 	if !wrote {
@@ -233,65 +226,27 @@ func RenderTable(result *model.EnrichmentResult, w io.Writer) error {
 
 	// ── Classification ────────────────────────────────────────────────────
 	ipinfo := result.Sources["ipinfo"]
-	greynoise := result.Sources["greynoise"]
 
-	hasClassification := false
-	if (ipinfo != nil && ipinfo.Status == "ok") || (greynoise != nil && greynoise.Status == "ok") {
-		hasClassification = true
-	}
+	hasClassification := ipinfo != nil && ipinfo.Status == "ok"
 
 	if hasClassification {
 		fmt.Fprintln(w, applyIf(styleSection, "CLASSIFICATION"))
 
-		if ipinfo != nil && ipinfo.Status == "ok" {
-			d := ipinfo.Data
+		d := ipinfo.Data
 
-			printBoolRow(w, applyIf, styleLabel, styleGreen, styleRed, styleDim,
-				"VPN", getBool(d, "vpn"), getString(d, "service"))
-			printBoolRow(w, applyIf, styleLabel, styleRed, styleGrey, styleDim,
-				"TOR", getBool(d, "tor"), "")
-			printBoolRow(w, applyIf, styleLabel, styleYellow, styleGrey, styleDim,
-				"Proxy", getBool(d, "proxy"), "")
-			printBoolRow(w, applyIf, styleLabel, styleYellow, styleGrey, styleDim,
-				"Hosting/DC", getBool(d, "hosting"), getString(d, "org"))
+		printBoolRow(w, applyIf, styleLabel, styleGreen, styleRed, styleDim,
+			"VPN", getBool(d, "vpn"), getString(d, "service"))
+		printBoolRow(w, applyIf, styleLabel, styleRed, styleGrey, styleDim,
+			"TOR", getBool(d, "tor"), "")
+		printBoolRow(w, applyIf, styleLabel, styleYellow, styleGrey, styleDim,
+			"Proxy", getBool(d, "proxy"), "")
+		printBoolRow(w, applyIf, styleLabel, styleYellow, styleGrey, styleDim,
+			"Hosting/DC", getBool(d, "hosting"), getString(d, "org"))
 
-			if pa, _ := d["privacy_available"].(bool); !pa {
-				fmt.Fprintf(w, "  %-14s %s\n",
-					applyIf(styleLabel, "Privacy"),
-					applyIf(styleGrey, "(token required for VPN/TOR/proxy data)"))
-			}
-		}
-
-		if greynoise != nil && greynoise.Status == "ok" {
-			d := greynoise.Data
-			noise := getBool(d, "noise")
-			class := getString(d, "classification")
-			noiseStr := formatBool(noise)
-			if class != "" {
-				noiseStr += " — " + class
-			}
-			noiseStyle := styleGrey
-			if noise && class == "malicious" {
-				noiseStyle = styleRed
-			} else if noise {
-				noiseStyle = styleYellow
-			}
+		if pa, _ := d["privacy_available"].(bool); !pa {
 			fmt.Fprintf(w, "  %-14s %s\n",
-				applyIf(styleLabel, "GN Noise"),
-				applyIf(noiseStyle, noiseStr))
-
-			riot := getBool(d, "riot")
-			riotStr := formatBool(riot)
-			if name := getString(d, "name"); riot && name != "" {
-				riotStr += " (" + name + ")"
-			}
-			riotStyle := styleGrey
-			if riot {
-				riotStyle = styleGreen
-			}
-			fmt.Fprintf(w, "  %-14s %s\n",
-				applyIf(styleLabel, "GN RIOT"),
-				applyIf(riotStyle, riotStr))
+				applyIf(styleLabel, "Privacy"),
+				applyIf(styleGrey, "(token required for VPN/TOR/proxy data)"))
 		}
 		fmt.Fprintln(w)
 	}
@@ -448,7 +403,7 @@ func RenderTable(result *model.EnrichmentResult, w io.Writer) error {
 			} else {
 				for _, k := range []string{"registrar", "registrant_organization", "created_date", "updated_date", "expiration_date", "status"} {
 					if v := getString(d, k); v != "" {
-						display := strings.Title(strings.ReplaceAll(k, "_", " "))
+						display := titleWords(strings.ReplaceAll(k, "_", " "))
 						fmt.Fprintf(w, "  %-24s %s\n", applyIf(styleLabel, display), applyIf(styleDim, v))
 					}
 				}
@@ -627,6 +582,16 @@ func printBoolRow(
 		}
 	}
 	fmt.Fprintf(w, "  %-14s %s\n", applyIf(labelStyle, label), applyIf(style, s))
+}
+
+// titleWords upper-cases the first letter of each space-separated word. It
+// replaces the deprecated strings.Title for the ASCII field labels used here.
+func titleWords(s string) string {
+	words := strings.Fields(s)
+	for i, word := range words {
+		words[i] = strings.ToUpper(word[:1]) + word[1:]
+	}
+	return strings.Join(words, " ")
 }
 
 func joinNonEmpty(sep string, parts ...string) string {

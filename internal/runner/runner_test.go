@@ -1,3 +1,7 @@
+// Copyright (c) 2026 FLINTEK LLC
+// Licensed under the Apache License, Version 2.0.
+// See LICENSE in the project root for license information.
+
 package runner
 
 import (
@@ -19,7 +23,7 @@ type mockEnricher struct {
 	err    error
 }
 
-func (m *mockEnricher) Name() string                         { return m.name }
+func (m *mockEnricher) Name() string                            { return m.name }
 func (m *mockEnricher) SupportedTypes() []detect.ObservableType { return m.types }
 func (m *mockEnricher) Enrich(_ context.Context, _ string, _ detect.ObservableType) (*model.SourceResult, error) {
 	return m.result, m.err
