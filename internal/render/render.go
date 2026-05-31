@@ -17,7 +17,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"golang.org/x/term"
 
-	"github.com/ctrlaltdean/observer/internal/model"
+	"github.com/flintek-llc/observer/internal/model"
 )
 
 // Format selects the output renderer.

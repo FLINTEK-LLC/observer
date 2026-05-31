@@ -11,8 +11,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/ctrlaltdean/observer/config"
-	"github.com/ctrlaltdean/observer/web"
+	"github.com/flintek-llc/observer/config"
+	"github.com/flintek-llc/observer/web"
 )
 
 // Version is set at build time via -ldflags.

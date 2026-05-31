@@ -11,7 +11,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/ctrlaltdean/observer/internal/detect"
+	"github.com/flintek-llc/observer/internal/detect"
 )
 
 func TestAbuseIPDBEnrich_OK(t *testing.T) {

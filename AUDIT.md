@@ -1,7 +1,7 @@
 # FLINTEK LLC — Observer Audit Report
 
 **Date:** 2026-05-30
-**Module:** `github.com/ctrlaltdean/observer`
+**Module:** `github.com/flintek-llc/observer`
 **Scope:** GreyNoise removal, Apache-2.0 license adoption, security audit, efficiency audit.
 **Build status after changes:** `go build ./...`, `go vet ./...`, and `go test ./...` all pass.
 

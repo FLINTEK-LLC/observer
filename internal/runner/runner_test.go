@@ -9,10 +9,10 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/ctrlaltdean/observer/config"
-	"github.com/ctrlaltdean/observer/internal/detect"
-	"github.com/ctrlaltdean/observer/internal/enricher"
-	"github.com/ctrlaltdean/observer/internal/model"
+	"github.com/flintek-llc/observer/config"
+	"github.com/flintek-llc/observer/internal/detect"
+	"github.com/flintek-llc/observer/internal/enricher"
+	"github.com/flintek-llc/observer/internal/model"
 )
 
 // mockEnricher is a test-only enricher that returns a fixed result or error.

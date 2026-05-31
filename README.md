@@ -27,7 +27,7 @@ Observer accepts a network observable — an IP address, domain, URL, or file ha
 Requires Go 1.22+. This puts `observe` directly in your `$GOPATH/bin`:
 
 ```bash
-go install github.com/ctrlaltdean/observer/cmd/observe@latest
+go install github.com/flintek-llc/observer/cmd/observe@latest
 
 # Then from anywhere:
 observe 1.2.3.4
@@ -36,7 +36,7 @@ observe keys          # configure API keys interactively
 
 ### Download a pre-built binary
 
-Download the latest release for your platform from the [releases page](https://github.com/ctrlaltdean/observer/releases).
+Download the latest release for your platform from the [releases page](https://github.com/flintek-llc/observer/releases).
 
 ```bash
 # Linux / macOS — add to PATH
@@ -50,7 +50,7 @@ observe-windows-amd64.exe 1.2.3.4
 ### Build from source
 
 ```bash
-git clone https://github.com/ctrlaltdean/observer
+git clone https://github.com/flintek-llc/observer
 cd observer
 go mod tidy
 make build-all     # builds dist/observe and dist/observer-server

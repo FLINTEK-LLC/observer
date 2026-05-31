@@ -23,11 +23,11 @@ import (
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
 
-	"github.com/ctrlaltdean/observer/config"
-	"github.com/ctrlaltdean/observer/internal/keysmgr"
-	"github.com/ctrlaltdean/observer/internal/model"
-	"github.com/ctrlaltdean/observer/internal/render"
-	"github.com/ctrlaltdean/observer/internal/runner"
+	"github.com/flintek-llc/observer/config"
+	"github.com/flintek-llc/observer/internal/keysmgr"
+	"github.com/flintek-llc/observer/internal/model"
+	"github.com/flintek-llc/observer/internal/render"
+	"github.com/flintek-llc/observer/internal/runner"
 )
 
 // Version is set at build time via -ldflags "-X main.Version=...".
@@ -327,7 +327,7 @@ func runUpdate() error {
 	defer cancel()
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet,
-		"https://api.github.com/repos/ctrlaltdean/observer/releases/latest", nil)
+		"https://api.github.com/repos/flintek-llc/observer/releases/latest", nil)
 	if err != nil {
 		return fmt.Errorf("could not build request: %w", err)
 	}
@@ -376,7 +376,7 @@ func runUpdate() error {
 		return nil
 	}
 	cmd := exec.CommandContext(ctx, goBin, "install",
-		"github.com/ctrlaltdean/observer/cmd/observe@latest")
+		"github.com/flintek-llc/observer/cmd/observe@latest")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {

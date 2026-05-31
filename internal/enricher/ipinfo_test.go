@@ -11,7 +11,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/ctrlaltdean/observer/internal/detect"
+	"github.com/flintek-llc/observer/internal/detect"
 )
 
 func TestIPInfoEnrich_BasicNoToken(t *testing.T) {

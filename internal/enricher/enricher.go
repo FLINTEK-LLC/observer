@@ -12,8 +12,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ctrlaltdean/observer/internal/detect"
-	"github.com/ctrlaltdean/observer/internal/model"
+	"github.com/flintek-llc/observer/internal/detect"
+	"github.com/flintek-llc/observer/internal/model"
 )
 
 // ErrUnsupportedType is returned when an enricher is called with a type it does not handle.

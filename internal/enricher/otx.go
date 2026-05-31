@@ -11,8 +11,8 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/ctrlaltdean/observer/internal/detect"
-	"github.com/ctrlaltdean/observer/internal/model"
+	"github.com/flintek-llc/observer/internal/detect"
+	"github.com/flintek-llc/observer/internal/model"
 )
 
 type OTXEnricher struct {

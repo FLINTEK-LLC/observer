@@ -16,8 +16,8 @@ import (
 	"github.com/likexian/whois"
 	whoisparser "github.com/likexian/whois-parser"
 
-	"github.com/ctrlaltdean/observer/internal/detect"
-	"github.com/ctrlaltdean/observer/internal/model"
+	"github.com/flintek-llc/observer/internal/detect"
+	"github.com/flintek-llc/observer/internal/model"
 )
 
 type WHOISEnricher struct {

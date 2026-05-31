@@ -1,4 +1,4 @@
-module github.com/ctrlaltdean/observer
+module github.com/flintek-llc/observer
 
 go 1.22
 

@@ -15,8 +15,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ctrlaltdean/observer/config"
-	"github.com/ctrlaltdean/observer/internal/runner"
+	"github.com/flintek-llc/observer/config"
+	"github.com/flintek-llc/observer/internal/runner"
 )
 
 //go:embed static
