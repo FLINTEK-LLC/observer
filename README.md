@@ -103,7 +103,7 @@ All configuration is via environment variables or a `.env` file in the working d
 | `ENRICHER_TIMEOUT_SECONDS` | Per-source context timeout | `15` |
 | `BULK_CONCURRENCY` | Max concurrent goroutines in bulk mode | `5` |
 
-Sources with no API key are automatically disabled. WHOIS and basic ipinfo geo work without keys.
+Sources with no API key are automatically disabled. WHOIS, basic ipinfo geo, and the X4BNet VPN list work without keys.
 
 ---
 
@@ -269,9 +269,11 @@ SourceResult {
 | WHOIS | ✅ | ✅ | ✅ | ✅² | — | — | — | No key |
 | AlienVault OTX | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | ipinfo.io | ✅ | ✅ | — | — | — | — | — | Optional |
+| X4BNet VPN list³ | ✅ | ✅ | — | — | — | — | — | No key |
 
 ¹ Shodan resolves the domain to an IP first.  
-² WHOIS extracts the domain from the URL, then queries WHOIS for that domain.
+² WHOIS extracts the domain from the URL, then queries WHOIS for that domain.  
+³ Checks the IP against [X4BNet/lists_vpn](https://github.com/X4BNet/lists_vpn). The list is fetched on demand (nothing is written to disk) and held in memory for 15 minutes. It is ASN-based, so a match means the IP is in a known VPN provider's range, not that it is confirmed as a VPN.
 
 ---
 

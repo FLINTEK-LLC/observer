@@ -194,6 +194,7 @@ func handleSources(w http.ResponseWriter, _ *http.Request, cfg *config.Config) {
 		{"whois", active["whois"], "WHOIS registration data for domains and IPs"},
 		{"otx", active["otx"], "AlienVault OTX threat pulse lookup"},
 		{"ipinfo", active["ipinfo"], "IP geolocation and VPN/TOR/proxy classification"},
+		{"x4bnet", active["x4bnet"], "X4BNet known-VPN netblock list (ASN-based)"},
 	}
 
 	writeJSON(w, http.StatusOK, map[string]any{"sources": sources})

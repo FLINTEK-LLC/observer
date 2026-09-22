@@ -87,5 +87,6 @@ func (c *Config) ActiveSources() map[string]bool {
 		"whois":      true, // no key required
 		"otx":        c.OTXAPIKey != "",
 		"ipinfo":     true, // basic works without token
+		"x4bnet":     true, // public list, no key required
 	}
 }

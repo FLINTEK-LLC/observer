@@ -156,6 +156,11 @@ func classificationSection(result *model.EnrichmentResult) string {
 		}
 	}
 
+	if x4b := result.Sources["x4bnet"]; x4b != nil && x4b.Status == "ok" {
+		fmt.Fprintf(&sb, "| VPN list (X4BNet) | %s |\n", boolWithService(x4b.Data, "vpn", "matched_cidr"))
+		wrote = true
+	}
+
 	if !wrote {
 		return ""
 	}
@@ -228,10 +233,15 @@ func RenderTable(result *model.EnrichmentResult, w io.Writer) error {
 	// ── Classification ────────────────────────────────────────────────────
 	ipinfo := result.Sources["ipinfo"]
 
-	hasClassification := ipinfo != nil && ipinfo.Status == "ok"
+	x4b := result.Sources["x4bnet"]
+	hasIPInfo := ipinfo != nil && ipinfo.Status == "ok"
+	hasX4B := x4b != nil && x4b.Status == "ok"
 
-	if hasClassification {
+	if hasIPInfo || hasX4B {
 		fmt.Fprintln(w, applyIf(styleSection, "CLASSIFICATION"))
+	}
+
+	if hasIPInfo {
 
 		d := ipinfo.Data
 
@@ -263,6 +273,14 @@ func RenderTable(result *model.EnrichmentResult, w io.Writer) error {
 				applyIf(styleLabel, "Privacy"),
 				applyIf(styleGrey, "("+note+")"))
 		}
+	}
+
+	if hasX4B {
+		printBoolRow(w, applyIf, styleLabel, styleYellow, styleGrey, styleDim,
+			"VPN list", getBool(x4b.Data, "vpn"), getString(x4b.Data, "matched_cidr"))
+	}
+
+	if hasIPInfo || hasX4B {
 		fmt.Fprintln(w)
 	}
 

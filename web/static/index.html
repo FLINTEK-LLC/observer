@@ -728,16 +728,20 @@
 
     // Classification section
     const ipinfo    = sources['ipinfo'];
+    const x4b       = sources['x4bnet'];
     let classHtml = '';
-    if (ipinfo?.status === 'ok') {
+    if (ipinfo?.status === 'ok' || x4b?.status === 'ok') {
       const badges = [];
-      {
+      if (ipinfo?.status === 'ok') {
         const d = ipinfo.data || {};
         badges.push(classBadge('Anonymous', d.anonymous, d.service));
         badges.push(classBadge('VPN',      d.vpn,     d.service));
         badges.push(classBadge('TOR',      d.tor,     ''));
         badges.push(classBadge('Proxy',    d.proxy,   ''));
         badges.push(classBadge('Hosting',  d.hosting, d.org));
+      }
+      if (x4b?.status === 'ok') {
+        badges.push(classBadge('VPN list', x4b.data?.vpn, x4b.data?.matched_cidr));
       }
       classHtml = `
         <div class="classification-card">
@@ -747,7 +751,7 @@
     }
 
     // Source cards
-    const sourceOrder = ['shodan','virustotal','abuseipdb','whois','otx','ipinfo'];
+    const sourceOrder = ['shodan','virustotal','abuseipdb','whois','otx','ipinfo','x4bnet'];
     const orderedKeys = [
       ...sourceOrder.filter(k => sources[k]),
       ...Object.keys(sources).filter(k => !sourceOrder.includes(k)),

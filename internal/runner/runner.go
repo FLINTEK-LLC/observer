@@ -120,8 +120,8 @@ func typeSupported(supported []detect.ObservableType, t detect.ObservableType) b
 }
 
 func buildEnrichers(cfg *config.Config) []enricher.Enricher {
-	// At most six sources; pre-allocate to avoid intermediate growth.
-	list := make([]enricher.Enricher, 0, 6)
+	// At most seven sources; pre-allocate to avoid intermediate growth.
+	list := make([]enricher.Enricher, 0, 7)
 
 	if cfg.ShodanAPIKey != "" {
 		list = append(list, enricher.NewShodan(cfg.ShodanAPIKey))
@@ -139,6 +139,8 @@ func buildEnrichers(cfg *config.Config) []enricher.Enricher {
 	}
 	// ipinfo: basic geo works without a token.
 	list = append(list, enricher.NewIPInfo(cfg.IPInfoToken))
+	// X4BNet VPN list: public, no key needed.
+	list = append(list, enricher.NewX4BNet())
 
 	return list
 }

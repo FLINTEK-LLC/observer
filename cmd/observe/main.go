@@ -232,7 +232,7 @@ Navigation: ↑/↓ or j/k  |  Enter: edit  |  d: clear  |  Ctrl+S: save & exit 
 			fmt.Println("\nSource Configuration")
 			fmt.Println(strings.Repeat("─", 40))
 
-			for _, name := range []string{"shodan", "virustotal", "abuseipdb", "whois", "otx", "ipinfo"} {
+			for _, name := range []string{"shodan", "virustotal", "abuseipdb", "whois", "otx", "ipinfo", "x4bnet"} {
 				isActive := active[name]
 				if isActive {
 					anyActive = true
