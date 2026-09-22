@@ -144,6 +144,7 @@ func classificationSection(result *model.EnrichmentResult) string {
 
 	if ipinfo != nil && ipinfo.Status == "ok" {
 		rows := [][2]string{
+			{"Anonymous", boolWithService(ipinfo.Data, "anonymous", "service")},
 			{"VPN", boolWithService(ipinfo.Data, "vpn", "service")},
 			{"TOR", boolVal(ipinfo.Data, "tor")},
 			{"Proxy", boolVal(ipinfo.Data, "proxy")},
@@ -234,19 +235,33 @@ func RenderTable(result *model.EnrichmentResult, w io.Writer) error {
 
 		d := ipinfo.Data
 
-		printBoolRow(w, applyIf, styleLabel, styleGreen, styleRed, styleDim,
-			"VPN", getBool(d, "vpn"), getString(d, "service"))
-		printBoolRow(w, applyIf, styleLabel, styleRed, styleGrey, styleDim,
-			"TOR", getBool(d, "tor"), "")
-		printBoolRow(w, applyIf, styleLabel, styleYellow, styleGrey, styleDim,
-			"Proxy", getBool(d, "proxy"), "")
-		printBoolRow(w, applyIf, styleLabel, styleYellow, styleGrey, styleDim,
-			"Hosting/DC", getBool(d, "hosting"), getString(d, "org"))
+		rows := []struct {
+			label, key, extra string
+			trueStyle         lipgloss.Style
+		}{
+			{"Anonymous", "anonymous", getString(d, "service"), styleYellow},
+			{"VPN", "vpn", getString(d, "service"), styleGreen},
+			{"TOR", "tor", "", styleRed},
+			{"Proxy", "proxy", "", styleYellow},
+			{"Hosting/DC", "hosting", getString(d, "org"), styleYellow},
+		}
+		for _, r := range rows {
+			if !hasBool(d, r.key) {
+				fmt.Fprintf(w, "  %-14s %s\n", applyIf(styleLabel, r.label), applyIf(styleGrey, "n/a"))
+				continue
+			}
+			printBoolRow(w, applyIf, styleLabel, r.trueStyle, styleGrey, styleDim,
+				r.label, getBool(d, r.key), r.extra)
+		}
 
 		if pa, _ := d["privacy_available"].(bool); !pa {
+			note := getString(d, "privacy_note")
+			if note == "" {
+				note = "privacy data unavailable"
+			}
 			fmt.Fprintf(w, "  %-14s %s\n",
 				applyIf(styleLabel, "Privacy"),
-				applyIf(styleGrey, "(token required for VPN/TOR/proxy data)"))
+				applyIf(styleGrey, "("+note+")"))
 		}
 		fmt.Fprintln(w)
 	}
@@ -552,11 +567,24 @@ func formatBool(b bool) string {
 	return "No"
 }
 
+// hasBool reports whether m carries a boolean for key. ipinfo omits flags its
+// plan doesn't cover, and those should render as unknown rather than "No".
+func hasBool(m map[string]any, key string) bool {
+	_, ok := m[key].(bool)
+	return ok
+}
+
 func boolVal(m map[string]any, key string) string {
+	if !hasBool(m, key) {
+		return "n/a"
+	}
 	return formatBool(getBool(m, key))
 }
 
 func boolWithService(m map[string]any, boolKey, svcKey string) string {
+	if !hasBool(m, boolKey) {
+		return "n/a"
+	}
 	b := getBool(m, boolKey)
 	s := formatBool(b)
 	if b {

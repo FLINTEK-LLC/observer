@@ -733,6 +733,7 @@
       const badges = [];
       {
         const d = ipinfo.data || {};
+        badges.push(classBadge('Anonymous', d.anonymous, d.service));
         badges.push(classBadge('VPN',      d.vpn,     d.service));
         badges.push(classBadge('TOR',      d.tor,     ''));
         badges.push(classBadge('Proxy',    d.proxy,   ''));
@@ -770,6 +771,10 @@
   }
 
   function classBadge(label, val, extra) {
+    // ipinfo omits flags the account's plan doesn't cover — show as unknown, not "No".
+    if (typeof val !== 'boolean') {
+      return `<div class="class-badge benign-val"><span class="label">${esc(label)}</span><span class="value">n/a</span></div>`;
+    }
     const cls = val ? 'true-val' : 'benign-val';
     const txt = val ? 'YES' + (extra ? ` (${esc(extra)})` : '') : 'No';
     return `<div class="class-badge ${cls}"><span class="label">${esc(label)}</span><span class="value">${txt}</span></div>`;
