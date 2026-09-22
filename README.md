@@ -2,7 +2,7 @@
 
 **Observable enrichment tool for defenders, analysts, and incident responders.**
 
-Observer accepts a network observable — an IP address, domain, URL, or file hash — fans it out to six threat intelligence sources simultaneously, and returns normalized, structured results. It ships as both a CLI binary and a self-hosted web server with a browser UI.
+Observer accepts a network observable — an IP address, domain, URL, or file hash — fans it out to seven threat intelligence sources simultaneously, and returns normalized, structured results. It ships as both a CLI binary and a self-hosted web server with a browser UI.
 
 ---
 
@@ -33,6 +33,21 @@ go install github.com/flintek-llc/observer/cmd/observe@latest
 observe 1.2.3.4
 observe keys          # configure API keys interactively
 ```
+
+To install or pin a specific release, use its tag instead of `@latest`:
+
+```bash
+go install github.com/flintek-llc/observer/cmd/observe@v0.6.0
+```
+
+### Updating
+
+```bash
+observe update        # check for a newer release and install it
+observe version       # confirm the installed version
+```
+
+Or rerun the `go install` command above. A newly pushed tag can take a few minutes to show up through the Go module proxy under `@latest`; requesting the tag directly works immediately.
 
 ### Download a pre-built binary
 
@@ -96,7 +111,7 @@ All configuration is via environment variables or a `.env` file in the working d
 | `VIRUSTOTAL_API_KEY` | VirusTotal API key | — |
 | `ABUSEIPDB_API_KEY` | AbuseIPDB API key | — |
 | `OTX_API_KEY` | AlienVault OTX API key | — |
-| `IPINFO_TOKEN` | ipinfo.io token (optional — enables privacy data) | — |
+| `IPINFO_TOKEN` | ipinfo.io token (optional). Core plans add an anonymous/hosting flag; Plus and legacy Privacy plans add the VPN/proxy/Tor/relay breakdown. Free (Lite) tokens give geo only. | — |
 | `OBSERVER_API_KEY` | Web server API key (leave empty to disable auth) | — |
 | `OBSERVER_PORT` | Web server listen port | `8080` |
 | `OBSERVER_LOG_LEVEL` | Log verbosity: debug / info / warn / error | `info` |
@@ -114,12 +129,16 @@ observe <observable>                      Enrich a single observable (pretty tab
 observe <observable> --format json        JSON output (machine-readable)
 observe <observable> --format markdown    Markdown tables (for reports / IRIS notes)
 observe <observable> --format csv         Flat CSV (observable,type,source,field,value)
-observe <observable> --sources vt,shodan  Run a subset of sources
-observer bulk <file>                       Enrich all lines in a file
-observer bulk --stdin                      Read observables from stdin (pipe-friendly)
-observer version                           Print version
-observer config                            Show which sources are configured
+observe <observable> --sources virustotal,shodan  Run a subset of sources
+observe bulk <file>                       Enrich all lines in a file
+observe bulk --stdin                      Read observables from stdin (pipe-friendly)
+observe version                           Print version
+observe update                            Check for a newer release and install it
+observe config                            Show which sources are configured
+observe keys                              Configure API keys interactively
 ```
+
+Source names for `--sources`: `shodan`, `virustotal`, `abuseipdb`, `whois`, `otx`, `ipinfo`, `x4bnet`.
 
 ### Global flags
 
@@ -135,10 +154,10 @@ When stdout is not a TTY (e.g., piped to `jq` or a file), all color and ANSI for
 
 ```bash
 # Pipe to jq
-observer 1.2.3.4 --format json | jq '.sources.virustotal.data'
+observe 1.2.3.4 --format json | jq '.sources.virustotal.data'
 
 # Bulk from stdin
-cat ips.txt | observer bulk --stdin --format json > results.json
+cat ips.txt | observe bulk --stdin --format json > results.json
 ```
 
 ---
@@ -179,7 +198,7 @@ X-API-Key: your-key-here
 Always unauthenticated. Returns server status.
 
 ```json
-{ "status": "ok", "version": "1.0.0" }
+{ "status": "ok", "version": "v0.6.0" }
 ```
 
 #### `GET /api/enrich?q={observable}`
@@ -187,7 +206,7 @@ Enrich a single observable.
 
 **Query parameters:**
 - `q` — the observable (required)
-- `sources` — comma-separated source filter, e.g. `vt,shodan` (optional)
+- `sources` — comma-separated source filter, e.g. `virustotal,shodan` (optional)
 
 ```bash
 curl -H "X-API-Key: mykey" \

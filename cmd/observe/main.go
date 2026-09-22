@@ -169,7 +169,7 @@ func main() {
 
 	root.PersistentFlags().StringVar(&cfgFile, "config", "", "path to .env config file")
 	root.PersistentFlags().StringVar(&format, "format", "table", "output format: table, json, markdown, csv")
-	root.PersistentFlags().StringVar(&sources, "sources", "", "comma-separated list of sources to run (e.g. vt,shodan)")
+	root.PersistentFlags().StringVar(&sources, "sources", "", "comma-separated list of sources to run (e.g. virustotal,shodan)")
 
 	// ─── version ──────────────────────────────────────────────────────────
 	root.AddCommand(&cobra.Command{
